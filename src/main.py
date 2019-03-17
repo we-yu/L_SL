@@ -2,6 +2,13 @@
 import sys
 import tkinter as tk
 import tkinter.messagebox as tkm # メッセージボックスに使用
+import random
+import PIL.ImageTk as pilimgtk
+import PIL.Image as pilimg
+
+
+WINDOW_WIDTH  = 400
+WINDOW_HEIGHT = 800
 
 def SetLabels(tk) :
     # Label text
@@ -150,17 +157,72 @@ def SetListBox(tk) :
                         command=lambda: DeleteFromList(ListBox2, tk.ACTIVE))  # 関数に引数を渡す場合は、commandオプションとlambda式を使う
     Button2.pack()
 
+    return
 
+def DrawOnCanvas(canv) :
+    canv.create_rectangle(random.randint(0, 300), random.randint(0, 200), random.randint(0, 400), random.randint(0, 250),
+                          tag="rectangle", fill='green', outline='#00f')
+    return
+
+def EraseOnCanvas(canv) :
+    canv.delete("rectangle")
+    return
+
+def SetCanvas(tk, rt) :
+    # Canvas Area
+    canvas = tk.Canvas(rt, width = WINDOW_WIDTH, height = WINDOW_HEIGHT)
+    canvas.place(x = 0, y = 0)
+
+    # Create Filled Square (Filled by Green, Outline border is Red)
+    canvas.create_rectangle(5, 5, 20, 20, fill = 'green', outline = 'red')
+
+    button_draw = tk.Button(rt, text=u'Draw Square', width = 15, command=lambda : DrawOnCanvas(canvas))
+    # button_draw.bind("<Button-1>", lambda : DrawOnCanvas(canvas))
+    button_draw.place(x=50, y=260)
+
+    button_draw = tk.Button(rt, text=u'Erase', width = 15, command=lambda : EraseOnCanvas(canvas))
+    # button_draw.bind("<Button-1>", lambda : EraseOnCanvas(canvas))
+    button_draw.place(x=200, y=260)
+
+
+    return
+
+
+class TkGraphic() :
+    def SetGraphic(self, tk, rt) :
+        self.cv = tk.Canvas(rt, width=WINDOW_WIDTH, height=WINDOW_HEIGHT, bg='white')
+        # cv.create_rectangle(5, 5, 20, 20, fill = 'green', outline = 'red')
+        self.cv.pack()
+
+        filepath = '/Users/yuji/Documents/python/L_SL/img/landscape-559434_640.jpg'
+        img = pilimg.open(filepath)
+        self.tkimg = pilimgtk.PhotoImage(img)
+
+        self.cv.create_image(100, 100, image=self.tkimg)
+        return
+
+def SetGraphic(tk, rt) :
+
+    cv = tk.Canvas(rt, width = WINDOW_WIDTH, height = WINDOW_HEIGHT, bg='white')
+    # cv.create_rectangle(5, 5, 20, 20, fill = 'green', outline = 'red')
+    cv.pack()
+
+    filepath = '/Users/yuji/Documents/python/L_SL/img/landscape-559434_640.jpg'
+    img = pilimg.open(filepath)
+    tkimg = pilimgtk.PhotoImage(img)
+
+    cv.create_image(100, 100, image = tkimg)
 
     return
 
 root = tk.Tk()
 
 # Set Window title
-root.title(u'ウィンドウタイトル')
+root.title(u'PyWindow')
 
 # Window-size change
-root.geometry('400x800')
+geometorySet = str(WINDOW_WIDTH) + 'x' + str(WINDOW_HEIGHT)
+root.geometry(geometorySet)
 
 # Labels -----------------------------
 # SetLabels(tk)
@@ -175,8 +237,14 @@ root.geometry('400x800')
 # SetDialog(tk)
 
 # ListBox ----------------------------
-SetListBox(tk)
+# SetListBox(tk)
 
+# Canvas -----------------------------
+# SetCanvas(tk, root)
+
+# Show Graphic -----------------------
+tkg = TkGraphic()
+tkg.SetGraphic(tk, root)
 
 root.mainloop()
 
