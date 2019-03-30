@@ -6,6 +6,7 @@ import random
 import PIL.ImageTk as pilimgtk
 import PIL.Image as pilimg
 
+# https://nnahito.gitbooks.io/tkinter/content/
 
 WINDOW_WIDTH  = 400
 WINDOW_HEIGHT = 800
