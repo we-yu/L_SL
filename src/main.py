@@ -5,8 +5,8 @@ import tkinter as tk
 import GUICtrl
 
 windowTitle = 'WindowTitle'
-windowWidth = '1000'
-windowHeight = '1000'
+windowWidth = '800'
+windowHeight = '600'
 
 gCtrl = GUICtrl.GUIController(windowTitle, windowWidth, windowHeight)
 # ----------------------
