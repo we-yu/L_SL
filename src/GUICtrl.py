@@ -80,9 +80,9 @@ class GUIController :
             # □ □ □ □
             # □ □ □ □
 
-            bg_RGB[0] = (i * 20)
-            bg_RGB[1] = (i * 20)
-            bg_RGB[2] = (i * 20)
+            bg_RGB[0] = (i * 5)
+            bg_RGB[1] = (i * 5)
+            bg_RGB[2] = (i * 5)
             rgbText = '#' + ''.join(map(str, bg_RGB))
 
             # No canvas padding
@@ -107,37 +107,36 @@ class GUIController :
         self.tgtStiUrl = url
 
     def GetPhotoImages(self, scraper) :
-        imgs = []
-        photoImgs = []
-        imgs.append(r'/Users/yuji/Documents/python/L_SL/img/icons/pte1.png')
-        imgs.append(r'/Users/yuji/Documents/python/L_SL/img/icons/pte2.png')
-        imgs.append(r'/Users/yuji/Documents/python/L_SL/img/icons/pte3.png')
-        imgs.append(r'/Users/yuji/Documents/python/L_SL/img/icons/pte4.png')
-        imgs.append(r'/Users/yuji/Documents/python/L_SL/img/icons/pte5.png')
-
-        urls = scraper.GetAllIconURL()
-        pprint(urls)
+        iconInfos = scraper.GetAllIconURL()
+        # pprint(iconInfos)
 
         title = scraper.GetStickerTitle()
-        self.IconSave(title, self.tgtStiUrl)
+        dirName = self.GetDirName(title, self.tgtStiUrl)
 
-        for img in imgs :
+        fCtrl = FileController.FileCtrl()
+        relativePath = fCtrl.CheckCreateDirectory(dirName)
+
+        photoImgs = []
+
+        for icon in iconInfos :
+            fullpath = relativePath + '/' + icon['id'] + '.png'
+            print(icon['id'], icon['url'], fullpath)
+            gotFile = fCtrl.SaveFile(icon['url'], fullpath)
+
             # PNG convert to jpeg [Warning]
-            openImg = pilimg.open(img).convert('RGB')
+            openImg = pilimg.open(gotFile).convert('RGB')
             photoImgs.append(pilimgtk.PhotoImage(openImg))
 
         return photoImgs
 
-    def IconSave(self, title, url):
+    def GetDirName(self, title, url):
 
         urlId = url.split('/')[5]
         dirName = title.replace(' ', '_')
         dirName = dirName.replace('/', '／')
         dirName = urlId + '_' + dirName
 
-        print(dirName)
-
-        return True
+        return dirName
 
     def ShowWindow(self):
         self.root.mainloop()
