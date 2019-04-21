@@ -11,7 +11,7 @@ import FileController
 class GUIController :
 
 #   Class value ------------------------------------
-    TARGET_URL = 'https://store.line.me/stickershop/product/4333/ja'
+    TARGET_URL = 'https://store.line.me/stickershop/product/4333/'
 
     MAXIMUM_COLUMN = 4
     __windowWidth   = 0
@@ -32,6 +32,14 @@ class GUIController :
     @tgtStiUrl.setter
     def tgtStiUrl(self, value):
         self.__tgtStiUrl = value
+
+    # IconsFrame target Url
+    @property
+    def iconsFrame(self):
+        return self.__iconsFrame
+    @iconsFrame.setter
+    def iconsFrame(self, value):
+        self.__iconsFrame = value
     #   ------------------------------------------------
 
     def __init__(self, title, width, height) :
@@ -53,13 +61,53 @@ class GUIController :
         # Set Focus on generated window
         os.system("open -a Python")
 
+        # Gadgets placing
+        self.GadgetPlacing()
+
         # Temp --------------------
         self.SetTargetStickerUrl(GUIController.TARGET_URL)
         # Temp --------------------
 
         return
 
+    def DummyFunc(self, urlbox):
+        # print('Dummy Func', msg)
+        tgtUrl = urlbox.get()
+        print(tgtUrl)
+
+        self.SetTargetStickerUrl(tgtUrl)
+        self.cv.delete('all')
+        self.IconLoader()
+        return
+
+    def GadgetPlacing(self) :
+        inputFrame = tk.Frame(self.root, bd=0, relief='ridge')
+        inputFrame.pack(fill=tk.X)
+        # inputFrame.grid(fill='x', row=0, column=0)
+        # button1 = tk.Button(inputFrame, text="入力")
+        # button1.pack(side="left")
+
+        urlLbl = tk.Label(inputFrame, text='URL')
+        urlBox = tk.Entry(inputFrame, width=75)
+        urlBtn = tk.Button(inputFrame, text='Get')
+
+        # placeholder setting
+        # urlBox.insert(0, 'https://store.line.me/stickershop/product/446/')
+        # Button Event : <ButtonRelease-1> = Release light button.
+        urlBtn.bind("<ButtonRelease-1>", lambda event, a=urlBox:self.DummyFunc(a))
+        # urlBtn.bind("<ButtonRelease-1>", self.DummyFunc)
+
+        urlLbl.pack(side=tk.LEFT)
+        urlBox.pack(side=tk.LEFT, expand=1)
+        urlBtn.pack(side=tk.LEFT)
+
+        self.iconsFrame = tk.Frame(self.root, bd=0, relief='ridge')
+        self.iconsFrame.pack()
+        return
+
     def IconLoader(self):
+
+
         # Panel size
         cv_width    = 200
         cv_height   = 200
@@ -73,6 +121,9 @@ class GUIController :
 
         gridRow = 0
         gridCol = 0
+
+        # return
+
         for i, tkimg in enumerate(self.tkimgs) :
 
             # 1 2 3 4
@@ -86,7 +137,7 @@ class GUIController :
             rgbText = '#' + ''.join(map(str, bg_RGB))
 
             # No canvas padding
-            self.cv = tk.Canvas(self.root, width=cv_width, height=cv_height, bg=rgbText, highlightthickness=0)
+            self.cv = tk.Canvas(self.iconsFrame, width=cv_width, height=cv_height, bg=rgbText, highlightthickness=0)
             # self.cv = tk.Canvas(self.root, width=cv_width, height=cv_height, bg=rgbText, highlightthickness=0, relief='ridge')
 
             # Put canvas from top-left -> left -> next-line-left
