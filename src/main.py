@@ -10,7 +10,7 @@ windowHeight = '600'
 
 gCtrl = GUICtrl.GUIController(windowTitle, windowWidth, windowHeight)
 # ----------------------
-gCtrl.IconLoader()
+# gCtrl.IconLoader()
 # ----------------------
 gCtrl.ShowWindow()
 

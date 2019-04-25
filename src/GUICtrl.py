@@ -7,6 +7,7 @@ import PIL.Image as pilimg
 from pprint import pprint
 import IconScraper
 import FileController
+import DBController
 
 class GUIController :
 
@@ -40,6 +41,14 @@ class GUIController :
     @iconsFrame.setter
     def iconsFrame(self, value):
         self.__iconsFrame = value
+
+    # DBController instance
+    @property
+    def dbctrl(self):
+        return self.__dbctrl
+    @dbctrl.setter
+    def dbctrl(self, value):
+        self.__dbctrl = value
     #   ------------------------------------------------
 
     def __init__(self, title, width, height) :
@@ -67,6 +76,11 @@ class GUIController :
         # Temp --------------------
         self.SetTargetStickerUrl(GUIController.TARGET_URL)
         # Temp --------------------
+
+        self.cv = tk.Canvas(self.root)
+
+        # DB Controller object
+        self.dbCtrl = DBController.DBCtrl()
 
         return
 
@@ -101,12 +115,16 @@ class GUIController :
         urlBox.pack(side=tk.LEFT, expand=1)
         urlBtn.pack(side=tk.LEFT)
 
+        # Tmp
+        urlBox.insert(tk.END, 'https://store.line.me/stickershop/product/4333/')
+
         self.iconsFrame = tk.Frame(self.root, bd=0, relief='ridge')
         self.iconsFrame.pack()
         return
 
     def IconLoader(self):
 
+        
 
         # Panel size
         cv_width    = 200
@@ -158,11 +176,12 @@ class GUIController :
         self.tgtStiUrl = url
 
     def GetPhotoImages(self, scraper) :
+
         iconInfos = scraper.GetAllIconURL()
         # pprint(iconInfos)
 
         title = scraper.GetStickerTitle()
-        dirName = self.GetDirName(title, self.tgtStiUrl)
+        urlId, dirName = self.GetDirName(title, self.tgtStiUrl)
 
         fCtrl = FileController.FileCtrl()
         relativePath = fCtrl.CheckCreateDirectory(dirName)
@@ -171,12 +190,15 @@ class GUIController :
 
         for icon in iconInfos :
             fullpath = relativePath + '/' + icon['id'] + '.png'
-            print(icon['id'], icon['url'], fullpath)
+            # print(icon['id'], icon['url'], fullpath)
             gotFile = fCtrl.SaveFile(icon['url'], fullpath)
 
             # PNG convert to jpeg [Warning]
             openImg = pilimg.open(gotFile).convert('RGB')
             photoImgs.append(pilimgtk.PhotoImage(openImg))
+
+        query = 'INSERT INTO sticker_list VALUES(%s, %s, %s, %s)' % (urlId, scraper.tgtUrl, dirName, '-')
+        print('query = ', query)
 
         return photoImgs
 
@@ -187,7 +209,7 @@ class GUIController :
         dirName = dirName.replace('/', '／')
         dirName = urlId + '_' + dirName
 
-        return dirName
+        return urlId, dirName
 
     def ShowWindow(self):
         self.root.mainloop()

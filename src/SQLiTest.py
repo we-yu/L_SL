@@ -9,6 +9,7 @@ from pprint import pprint
 # Create DB file.
 con = sqlite3.connect('sample.db')
 
+print(con)
 # Create cursor-object
 cursor = con.cursor()
 
@@ -45,12 +46,17 @@ try:
     query = 'INSERT INTO data_set VALUES(?, ?, ?)'
     cursor.executemany(query, data)
 
+    con.commit()
+
     # Only insert, Data is not updated. To updated, Need commit.
     # con.commit()
-    # This is auto Commit
-    con = sqlite3.connect('sample.db', isolation_level=None)
+    # isolation_level=None : This is auto Commit
+    # con = sqlite3.connect('sample.db', isolation_level=None)
 
     ### Read DATA --------------------------------------------------------------------------------------
+
+    # conn = sqlite3.connect('sample.db')
+    # cursor = conn.cursor()
 
     query = 'SELECT * FROM data_set'
     # Get all data from executed query (Type = List)
@@ -80,30 +86,30 @@ try:
 
     ### Delete DATA --------------------------------------------------------------------------------------
 
-    # Delete target record
-    query = 'DELETE FROM data_set WHERE id=?'
-    values = (2 ,)
-    cursor.execute(query, values)
-    query = 'SELECT * FROM data_set'
-    cursor.execute(query)
-    pprint( cursor.fetchall() )
-
-    print('---')
-
-    # Delete all values from Table
-    query = 'DELETE FROM data_set'
-    cursor.execute(query)
-    query = 'SELECT * FROM data_set'
-    cursor.execute(query)
-    pprint( cursor.fetchall() )
-
-    print('---')
-
-    # Delete Table
-    query = 'DROP TABLE data_set'
-    cursor.execute(query)
+    # # Delete target record
+    # query = 'DELETE FROM data_set WHERE id=?'
+    # values = (2 ,)
+    # cursor.execute(query, values)
     # query = 'SELECT * FROM data_set'
     # cursor.execute(query)
     # pprint( cursor.fetchall() )
+    #
+    # print('---')
+    #
+    # # Delete all values from Table
+    # query = 'DELETE FROM data_set'
+    # cursor.execute(query)
+    # query = 'SELECT * FROM data_set'
+    # cursor.execute(query)
+    # pprint( cursor.fetchall() )
+    #
+    # print('---')
+    #
+    # # Delete Table
+    # query = 'DROP TABLE data_set'
+    # cursor.execute(query)
+    # # query = 'SELECT * FROM data_set'
+    # # cursor.execute(query)
+    # # pprint( cursor.fetchall() )
 except sqlite3.Error as e :
     print('sqlite3.Error occurred : ', e.args[0])
