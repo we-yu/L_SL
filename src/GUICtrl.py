@@ -35,6 +35,22 @@ class GUIController :
     def tgtStiUrl(self, value):
         self.__tgtStiUrl = value
 
+    # Currently target sticker's URL ID
+    @property
+    def parentId(self):
+        return self.__parentId
+    @parentId.setter
+    def parentId(self, value):
+        self.__parentId = value
+
+    # Size radios group variable
+    @property
+    def groupVar(self):
+        return self.__groupVar
+    @groupVar.setter
+    def groupVar(self, value):
+        self.__groupVar = value
+
     # IconsFrame target Url
     @property
     def iconsFrame(self):
@@ -107,7 +123,9 @@ class GUIController :
 
     def CopyURLtoClipboard(self, parent_id, local_id):
         print('Kicked icon id =', parent_id, local_id)
-        query = 'SELECT url_sticker_s FROM sticker_detail WHERE local_id=%s' % (local_id)
+        sticker_size = 's'
+        selectTarget = 'url_sticker_%s' % (sticker_size)
+        query = 'SELECT %s FROM sticker_detail WHERE (parent_id=%s) AND (local_id=%s)' % (selectTarget, parent_id, local_id)
         result = self.dbCtrl.Read(query, 'detail')
         # result -> [('https://stickershop.line-scdn.net/...png',)]
         self.clpbrdCtrl.CopyToClipboard(result[0][0])
@@ -120,7 +138,7 @@ class GUIController :
         # button1.pack(side="left")
 
         urlLbl = tk.Label(inputFrame, text='URL')
-        urlBox = tk.Entry(inputFrame, width=75)
+        urlBox = tk.Entry(inputFrame, width=60)
         urlBtn = tk.Button(inputFrame, text='Get')
 
         # placeholder setting
@@ -129,12 +147,33 @@ class GUIController :
         urlBtn.bind("<Button-1>", lambda event, a=urlBox:self.ScrapingStickerPage(a))
         # urlBtn.bind("<ButtonRelease-1>", self.DummyFunc)
 
+
+        self.groupVar = tk.IntVar()
+        self.groupVar.set(2)
+        # groupVar = tk.StringVar(value='sizeL')
+
+        radioTexts = ['L', 'M', 'S']
+        radioButtons = []
+
+        # enumerate(self.tkimgs)
+        for i ,rText in enumerate(radioTexts) :
+            radioButtons.append(tk.Radiobutton(inputFrame, text=rText, value=i, variable=self.groupVar))
+
+        print(self.groupVar.get())
+
         urlLbl.pack(side=tk.LEFT)
-        urlBox.pack(side=tk.LEFT, expand=1)
+        # urlBox.pack(side=tk.LEFT, expand=1)
+        urlBox.pack(side=tk.LEFT)
+
         urlBtn.pack(side=tk.LEFT)
 
+        for rBtn in radioButtons :
+            rBtn.pack(side=tk.LEFT)
+
+
+
         # Tmp
-        urlBox.insert(tk.END, 'https://store.line.me/stickershop/product/4333/')
+        urlBox.insert(tk.END, 'https://store.line.me/stickershop/product/4506/')
 
         self.iconsFrame = tk.Frame(self.root, bd=0, relief='ridge')
         self.iconsFrame.pack()
@@ -185,7 +224,9 @@ class GUIController :
             # gridTxt = 'Grid = [%s, %s]' % (gridRow, gridCol)
             iconId = str(ids[i])
 
-            self.cv.bind("<Button-1>", lambda event, a=0, b=iconId:self.CopyURLtoClipboard(a, b))
+            # http://memopy.hatenadiary.jp/entry/2017/06/13/214928
+            # Define event, When clicked Canvas.
+            self.cv.bind("<Button-1>", lambda event, a=self.parentId, b=iconId:self.CopyURLtoClipboard(a, b))
 
             gridCol += 1
 
@@ -205,7 +246,8 @@ class GUIController :
         # Get Top title of Sticker.
         title = scraper.GetStickerTitle()
         # Convert some characters, And connect with ID. Same time, Get ID. (URL ID)
-        urlId, dirName = self.GetDirName(title, self.tgtStiUrl)
+        self.parentId, dirName = self.GetDirName(title, self.tgtStiUrl)
+        urlId = self.parentId
 
         fCtrl = FileController.FileCtrl()
         relativePath = fCtrl.CheckCreateDirectory(dirName) + '/'
