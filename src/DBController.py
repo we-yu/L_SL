@@ -26,42 +26,52 @@ class DBCtrl :
 
     def __init__(self) :
         print('Call ' + self.__class__.__name__ + ' Constructor')
-        connector = self.CheckCreateDB()
-
-        print(connector)
+        self.con = self.CheckCreateDB()
 
         # self.cursor = connector.cursor()
         # self.cursor.execute(query)
         # res = self.cursor.fetchall()
         # print('res = ', res)
 
-        cursor = connector.cursor()
+        self.cursor = self.con.cursor()
 
         # -----------------------------------------------------
-        query = 'SELECT * FROM sticker_list ORDER BY id'
-        cursor.execute(query)
-        fAll = cursor.fetchall()
-        pprint(fAll)
-        print('---')
-        query = 'SELECT * FROM sticker_detail ORDER BY local_id'
-        cursor.execute(query)
-        fAll = cursor.fetchall()
-        pprint(fAll)
-        print('---')
+        # query = 'SELECT * FROM sticker_list ORDER BY id'
+        # self.cursor.execute(query)
+        # fAll = self.cursor.fetchall()
+        # pprint(fAll)
+        # print('---')
+        # query = 'SELECT * FROM sticker_detail ORDER BY local_id'
+        # self.cursor.execute(query)
+        # fAll = self.cursor.fetchall()
+        # pprint(fAll)
+        # print('---')
         # -----------------------------------------------------
 
     def CheckCreateDB(self) :
         relativePath = DBCtrl.DB_LOCATION
-
         con = sqlite3.connect(relativePath, isolation_level=None)
-
         return con
 
-    def Create(self) :
-        return
+    def Create(self, query, data=None, type=None) :
 
-    def Read(self) :
-        return
+        if type == 'many' :
+            dbResult = self.cursor.executemany(query, data)
+        else :
+            dbResult = self.cursor.execute(query)
+        self.con.commit()
+        return dbResult
+
+    def Read(self, query, type=None) :
+        self.cursor.execute(query)
+
+        if type == 'count' :
+            dbResult = self.cursor.fetchone()
+            dbResult = int(dbResult[0])
+        else :
+            dbResult = self.cursor.fetchall()
+
+        return dbResult
 
     def Update(self) :
         return
@@ -72,7 +82,6 @@ class DBCtrl :
     def ExecuteQuery(self, con, q) :
         try:
             print('Query is [', q, ']')
-
         except sqlite3.Error as e:
             print('sqlite3.Error occurred : ', e.args[0])
 

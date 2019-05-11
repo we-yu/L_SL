@@ -85,12 +85,15 @@ class IconScraper :
             data_preview = iconLi.get('data-preview')
             data_preview = json.loads(data_preview)
 
+            # print(data_preview)
+
             # Get static/fallback url. Get small-size icon url from static.
             staticUrl = data_preview['staticUrl'].split(';')[0]
             fallbackStaticUrl = data_preview['fallbackStaticUrl'].split(';')[0]
-            mainUrl = staticUrl.replace('@', '_key@')
+            # Make background-image URL
+            backgroundUrl = staticUrl.replace('@', '_key@')
             # Set Id and url into dictionary, Then append to array. This is return value.
-            iconInfo = {'id':data_preview['id'], 'url':mainUrl}
+            iconInfo = {'id':data_preview['id'], 'staticUrl':staticUrl, 'fbStaticUrl':fallbackStaticUrl, 'backGroundUrl':backgroundUrl}
             iconUrls.append(iconInfo)
 
         return iconUrls

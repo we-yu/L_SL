@@ -8,6 +8,7 @@ from pprint import pprint
 import IconScraper
 import FileController
 import DBController
+import ClipboardController
 
 class GUIController :
 
@@ -34,6 +35,22 @@ class GUIController :
     def tgtStiUrl(self, value):
         self.__tgtStiUrl = value
 
+    # Currently target sticker's URL ID
+    @property
+    def parentId(self):
+        return self.__parentId
+    @parentId.setter
+    def parentId(self, value):
+        self.__parentId = value
+
+    # Size radios group variable
+    @property
+    def groupVar(self):
+        return self.__groupVar
+    @groupVar.setter
+    def groupVar(self, value):
+        self.__groupVar = value
+
     # IconsFrame target Url
     @property
     def iconsFrame(self):
@@ -44,11 +61,19 @@ class GUIController :
 
     # DBController instance
     @property
-    def dbctrl(self):
-        return self.__dbctrl
-    @dbctrl.setter
-    def dbctrl(self, value):
-        self.__dbctrl = value
+    def dbCtrl(self):
+        return self.__dbCtrl
+    @dbCtrl.setter
+    def dbCtrl(self, value):
+        self.__dbCtrl = value
+
+    # DBController instance
+    @property
+    def clpbrdCtrl(self):
+        return self.__clpbrdCtrl
+    @clpbrdCtrl.setter
+    def clpbrdCtrl(self, value):
+        self.__clpbrdCtrl = value
     #   ------------------------------------------------
 
     def __init__(self, title, width, height) :
@@ -79,13 +104,15 @@ class GUIController :
 
         self.cv = tk.Canvas(self.root)
 
-        # DB Controller object
+        # DB Controller instance
         self.dbCtrl = DBController.DBCtrl()
+
+        # Clipboard controller instance
+        self.clpbrdCtrl = ClipboardController.ClipBoardCtrl()
 
         return
 
-    def DummyFunc(self, urlbox):
-        # print('Dummy Func', msg)
+    def ScrapingStickerPage(self, urlbox):
         tgtUrl = urlbox.get()
         print(tgtUrl)
 
@@ -93,6 +120,17 @@ class GUIController :
         self.cv.delete('all')
         self.IconLoader()
         return
+
+    def CopyURLtoClipboard(self, parent_id, local_id):
+        print('Kicked icon id =', parent_id, local_id)
+        print(self.groupVar.get().lower())
+
+        sticker_size = self.groupVar.get().lower()
+        selectTarget = 'url_sticker_%s' % (sticker_size)
+        query = 'SELECT %s FROM sticker_detail WHERE (parent_id=%s) AND (local_id=%s)' % (selectTarget, parent_id, local_id)
+        result = self.dbCtrl.Read(query, 'detail')
+        # result -> [('https://stickershop.line-scdn.net/...png',)]
+        self.clpbrdCtrl.CopyToClipboard(result[0][0])
 
     def GadgetPlacing(self) :
         inputFrame = tk.Frame(self.root, bd=0, relief='ridge')
@@ -102,38 +140,62 @@ class GUIController :
         # button1.pack(side="left")
 
         urlLbl = tk.Label(inputFrame, text='URL')
-        urlBox = tk.Entry(inputFrame, width=75)
+        urlBox = tk.Entry(inputFrame, width=60)
         urlBtn = tk.Button(inputFrame, text='Get')
 
         # placeholder setting
         # urlBox.insert(0, 'https://store.line.me/stickershop/product/446/')
         # Button Event : <ButtonRelease-1> = Release light button.
-        urlBtn.bind("<ButtonRelease-1>", lambda event, a=urlBox:self.DummyFunc(a))
+        urlBtn.bind("<Button-1>", lambda event, a=urlBox:self.ScrapingStickerPage(a))
         # urlBtn.bind("<ButtonRelease-1>", self.DummyFunc)
 
+        # Radio button group control
+        # Radio group value should be class value.
+        # self.groupVar = tk.IntVar()
+        # self.groupVar.set(2)
+        self.groupVar = tk.StringVar()
+        self.groupVar.set('S')
+        # groupVar = tk.StringVar(value='sizeL')
+
+        radioTexts = ['L', 'M', 'S']
+        radioButtons = []
+
+        for i ,rText in enumerate(radioTexts) :
+            radioButtons.append(tk.Radiobutton(inputFrame, text=rText, value=rText, variable=self.groupVar))
+
         urlLbl.pack(side=tk.LEFT)
-        urlBox.pack(side=tk.LEFT, expand=1)
+        # urlBox.pack(side=tk.LEFT, expand=1)
+        urlBox.pack(side=tk.LEFT)
+
         urlBtn.pack(side=tk.LEFT)
 
+        for rBtn in radioButtons :
+            rBtn.pack(side=tk.LEFT)
+
+
         # Tmp
-        urlBox.insert(tk.END, 'https://store.line.me/stickershop/product/4333/')
+        urlBox.insert(tk.END, 'https://store.line.me/stickershop/product/4506/')
+
 
         self.iconsFrame = tk.Frame(self.root, bd=0, relief='ridge')
         self.iconsFrame.pack()
+
+        # vbar = tk.Scrollbar(self.iconsFrame, orient=tk.VERTICAL, command=self.iconsFrame.yview)
+        # vbar.pack(side=tk.RIGHT, fill=tk.Y)
+        # vbar.config(command=self.iconsFrame.yview)
+
         return
 
     def IconLoader(self):
-
-        
-
         # Panel size
         cv_width    = 200
         cv_height   = 200
 
         # Scaper instantiate
         iconScraper = IconScraper.IconScraper(self.tgtStiUrl)
+
         # Load all image files
-        self.tkimgs = self.GetPhotoImages(iconScraper)
+        self.tkimgs, ids = self.GetPhotoImages(iconScraper)
 
         bg_RGB = [0, 0, 0]
 
@@ -166,6 +228,13 @@ class GUIController :
             # 画像はCanvasの真ん中に配置
             self.cv.create_image((cv_width / 2), (cv_height / 2), image=tkimg)
 
+            # gridTxt = 'Grid = [%s, %s]' % (gridRow, gridCol)
+            iconId = str(ids[i])
+
+            # http://memopy.hatenadiary.jp/entry/2017/06/13/214928
+            # Define event, When clicked Canvas.
+            self.cv.bind("<Button-1>", lambda event, a=self.parentId, b=iconId:self.CopyURLtoClipboard(a, b))
+
             gridCol += 1
 
             if (gridCol == GUIController.MAXIMUM_COLUMN) :
@@ -173,34 +242,74 @@ class GUIController :
                 gridCol  = 0
 
     def SetTargetStickerUrl(self, url) :
-        self.tgtStiUrl = url
+            self.tgtStiUrl = url
 
     def GetPhotoImages(self, scraper) :
 
+        # Get all targets of Download icons URL
         iconInfos = scraper.GetAllIconURL()
         # pprint(iconInfos)
 
+        # Get Top title of Sticker.
         title = scraper.GetStickerTitle()
-        urlId, dirName = self.GetDirName(title, self.tgtStiUrl)
+        # Convert some characters, And connect with ID. Same time, Get ID. (URL ID)
+        self.parentId, dirName = self.GetDirName(title, self.tgtStiUrl)
+        urlId = self.parentId
 
         fCtrl = FileController.FileCtrl()
-        relativePath = fCtrl.CheckCreateDirectory(dirName)
+        relativePath = fCtrl.CheckCreateDirectory(dirName) + '/'
 
+        # python photo image list
         photoImgs = []
+        # id numbers
+        ids = []
 
         for icon in iconInfos :
-            fullpath = relativePath + '/' + icon['id'] + '.png'
+            fullpath = relativePath + icon['id'] + '.png'
             # print(icon['id'], icon['url'], fullpath)
-            gotFile = fCtrl.SaveFile(icon['url'], fullpath)
+            gotFile = fCtrl.SaveFile(icon['backGroundUrl'], fullpath)
 
             # PNG convert to jpeg [Warning]
             openImg = pilimg.open(gotFile).convert('RGB')
             photoImgs.append(pilimgtk.PhotoImage(openImg))
 
-        query = 'INSERT INTO sticker_list VALUES(%s, %s, %s, %s)' % (urlId, scraper.tgtUrl, dirName, '-')
-        print('query = ', query)
+            # Save id numbers by getting order
+            ids.append(icon['id'])
 
-        return photoImgs
+        # DB process ------------------------------------------------
+
+        # Check list table. Already registered this sticker data or not.
+        query = 'SELECT count(*) FROM sticker_list WHERE id=%s' % (urlId)
+        result = self.dbCtrl.Read(query, 'count')
+
+        # If not registered.
+        if result <= 0 :
+            # Insert 1 record to list table. URL-ID, URL, Directory name, Stored directory
+            query = 'INSERT INTO sticker_list VALUES(%s, \'%s\', \'%s\', \'%s\')' % (urlId, scraper.tgtUrl, dirName, relativePath)
+            self.dbCtrl.Create(query)
+
+            # After registerd into list, Make data of detail.
+            query = 'SELECT count(*) FROM sticker_detail WHERE parent_id=%s' % (urlId)
+            result = self.dbCtrl.Read(query, 'count')
+
+            if result <= 0:
+                # Several records to register.
+                query = 'INSERT INTO sticker_detail VALUES (?, ?, ?, ?, ?)'
+                values = []
+                for icon in iconInfos:
+                    # Make data as tuple. (Executemany accepts only [(), (), ()] tuple in list.)
+                    value = (urlId, icon['id'], icon['staticUrl'], icon['fbStaticUrl'], icon['backGroundUrl'])
+                    values.append(value)
+
+                result = self.dbCtrl.Create(query, values, 'many')
+
+        else :
+            print(dirName, 'is already downloaded.')
+
+
+
+
+        return photoImgs, ids
 
     def GetDirName(self, title, url):
 
