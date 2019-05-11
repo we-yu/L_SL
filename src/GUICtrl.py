@@ -180,10 +180,6 @@ class GUIController :
         self.iconsFrame = tk.Frame(self.root, bd=0, relief='ridge')
         self.iconsFrame.pack()
 
-        # vbar = tk.Scrollbar(self.iconsFrame, orient=tk.VERTICAL, command=self.iconsFrame.yview)
-        # vbar.pack(side=tk.RIGHT, fill=tk.Y)
-        # vbar.config(command=self.iconsFrame.yview)
-
         return
 
     def IconLoader(self):
@@ -197,12 +193,21 @@ class GUIController :
         # Load all image files
         self.tkimgs, ids = self.GetPhotoImages(iconScraper)
 
+        # Make vertical scrollbar to see all stickers -----------------------
+        outCV = tk.Canvas(self.iconsFrame, width=GUIController.__windowWidth, height=GUIController.__windowHeight)
+
+        scrollbar = tk.Scrollbar(self.iconsFrame, orient=tk.VERTICAL)
+        scrollbar.config(command=outCV.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        outCV.configure(yscrollcommand=scrollbar.set)
+        outCV.pack()
+        # --------------------------------------------------------------------
+
         bg_RGB = [0, 0, 0]
 
         gridRow = 0
         gridCol = 0
-
-        # return
 
         for i, tkimg in enumerate(self.tkimgs) :
 
@@ -211,13 +216,13 @@ class GUIController :
             # □ □ □ □
             # □ □ □ □
 
-            bg_RGB[0] = (i * 5)
-            bg_RGB[1] = (i * 5)
-            bg_RGB[2] = (i * 5)
+            bg_RGB[0] = '00'
+            bg_RGB[1] = '88'
+            bg_RGB[2] = '00'
             rgbText = '#' + ''.join(map(str, bg_RGB))
 
             # No canvas padding
-            self.cv = tk.Canvas(self.iconsFrame, width=cv_width, height=cv_height, bg=rgbText, highlightthickness=0)
+            self.cv = tk.Canvas(outCV, width=cv_width, height=cv_height, bg=rgbText, highlightthickness=0)
             # self.cv = tk.Canvas(self.root, width=cv_width, height=cv_height, bg=rgbText, highlightthickness=0, relief='ridge')
 
             # Put canvas from top-left -> left -> next-line-left
@@ -240,6 +245,8 @@ class GUIController :
             if (gridCol == GUIController.MAXIMUM_COLUMN) :
                 gridRow += 1
                 gridCol  = 0
+
+
 
     def SetTargetStickerUrl(self, url) :
             self.tgtStiUrl = url
