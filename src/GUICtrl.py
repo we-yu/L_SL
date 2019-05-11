@@ -123,7 +123,9 @@ class GUIController :
 
     def CopyURLtoClipboard(self, parent_id, local_id):
         print('Kicked icon id =', parent_id, local_id)
-        sticker_size = 's'
+        print(self.groupVar.get().lower())
+
+        sticker_size = self.groupVar.get().lower()
         selectTarget = 'url_sticker_%s' % (sticker_size)
         query = 'SELECT %s FROM sticker_detail WHERE (parent_id=%s) AND (local_id=%s)' % (selectTarget, parent_id, local_id)
         result = self.dbCtrl.Read(query, 'detail')
@@ -147,19 +149,19 @@ class GUIController :
         urlBtn.bind("<Button-1>", lambda event, a=urlBox:self.ScrapingStickerPage(a))
         # urlBtn.bind("<ButtonRelease-1>", self.DummyFunc)
 
-
-        self.groupVar = tk.IntVar()
-        self.groupVar.set(2)
+        # Radio button group control
+        # Radio group value should be class value.
+        # self.groupVar = tk.IntVar()
+        # self.groupVar.set(2)
+        self.groupVar = tk.StringVar()
+        self.groupVar.set('S')
         # groupVar = tk.StringVar(value='sizeL')
 
         radioTexts = ['L', 'M', 'S']
         radioButtons = []
 
-        # enumerate(self.tkimgs)
         for i ,rText in enumerate(radioTexts) :
-            radioButtons.append(tk.Radiobutton(inputFrame, text=rText, value=i, variable=self.groupVar))
-
-        print(self.groupVar.get())
+            radioButtons.append(tk.Radiobutton(inputFrame, text=rText, value=rText, variable=self.groupVar))
 
         urlLbl.pack(side=tk.LEFT)
         # urlBox.pack(side=tk.LEFT, expand=1)
@@ -171,12 +173,17 @@ class GUIController :
             rBtn.pack(side=tk.LEFT)
 
 
-
         # Tmp
         urlBox.insert(tk.END, 'https://store.line.me/stickershop/product/4506/')
 
+
         self.iconsFrame = tk.Frame(self.root, bd=0, relief='ridge')
         self.iconsFrame.pack()
+
+        # vbar = tk.Scrollbar(self.iconsFrame, orient=tk.VERTICAL, command=self.iconsFrame.yview)
+        # vbar.pack(side=tk.RIGHT, fill=tk.Y)
+        # vbar.config(command=self.iconsFrame.yview)
+
         return
 
     def IconLoader(self):
@@ -235,7 +242,7 @@ class GUIController :
                 gridCol  = 0
 
     def SetTargetStickerUrl(self, url) :
-        self.tgtStiUrl = url
+            self.tgtStiUrl = url
 
     def GetPhotoImages(self, scraper) :
 
