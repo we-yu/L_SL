@@ -15,6 +15,8 @@ class GUIController :
 #   Class value ------------------------------------
     TARGET_URL = 'https://store.line.me/stickershop/product/4333/'
 
+    BUTTON_COUNER = 0
+
     MAXIMUM_COLUMN = 4
     __windowWidth   = 0
     __windowHeight  = 0
@@ -59,6 +61,30 @@ class GUIController :
     def iconsFrame(self, value):
         self.__iconsFrame = value
 
+    # galleryFrame
+    @property
+    def galleryFrame(self):
+        return self.__galleryFrame
+    @galleryFrame.setter
+    def galleryFrame(self, value):
+        self.__galleryFrame = value
+
+    # galleryTag
+    @property
+    def galleryTag(self):
+        return self.__galleryTag
+    @galleryTag.setter
+    def galleryTag(self, value):
+        self.__galleryTag = value
+
+    # outerCV
+    @property
+    def outerCV(self):
+        return self.__outerCV
+    @outerCV.setter
+    def outerCV(self, value):
+        self.__outerCV = value
+
     # DBController instance
     @property
     def dbCtrl(self):
@@ -102,7 +128,10 @@ class GUIController :
         self.SetTargetStickerUrl(GUIController.TARGET_URL)
         # Temp --------------------
 
-        self.cv = tk.Canvas(self.root)
+        # Initialize (If not have this, First time .delete('all') going to be error)
+        # self.cv = tk.Canvas(self.root)
+        # self.outerCV = tk.Canvas(self.root)
+        # gf = self.SetGallaryFrame()
 
         # DB Controller instance
         self.dbCtrl = DBController.DBCtrl()
@@ -117,8 +146,20 @@ class GUIController :
         print(tgtUrl)
 
         self.SetTargetStickerUrl(tgtUrl)
-        self.cv.delete('all')
+        # if GUIController.BUTTON_COUNER > 0 :
+        #     # self.cv.delete('all')
+        #     self.outerCV.delete(self.galleryTag)
+        #     print('DEL1', self.outerCV)
+        #     self.outerCV.delete('all')
+        #     self.outerCV = None
+        #     print('DEL2', self.outerCV)
+        #     self.DelIconsFrame()
+        #     self.SetIconsFrame()
+        self.DelIconsFrame()
+        self.SetIconsFrame()
         self.IconLoader()
+
+        GUIController.BUTTON_COUNER += 1
         return
 
     def CopyURLtoClipboard(self, parent_id, local_id):
@@ -172,15 +213,36 @@ class GUIController :
         for rBtn in radioButtons :
             rBtn.pack(side=tk.LEFT)
 
-
         # Tmp
-        urlBox.insert(tk.END, 'https://store.line.me/stickershop/product/4506/')
+        urlBox.insert(tk.END, 'https://store.line.me/stickershop/product/1252985/')
 
-
-        self.iconsFrame = tk.Frame(self.root, bd=0, relief='ridge')
-        self.iconsFrame.pack()
+        self.SetIconsFrame()
 
         return
+
+    def SetIconsFrame(self):
+        self.iconsFrame = tk.Frame(self.root, bd=0, relief='ridge')
+        self.iconsFrame.pack()
+    def DelIconsFrame(self):
+        self.iconsFrame.pack_forget()
+
+
+
+    def SetGallaryFrame(self):
+        # Make vertical scrollbar to see all stickers -----------------------
+        self.outerCV = tk.Canvas(self.iconsFrame, width=GUIController.__windowWidth, height=GUIController.__windowHeight)
+
+        scrollbar = tk.Scrollbar(self.iconsFrame, orient=tk.VERTICAL)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        scrollbar.config(command=self.outerCV.yview)
+
+        self.outerCV.config(scrollregion=(0, 0, 2000, 2000), yscrollcommand=scrollbar.set)
+        self.outerCV.pack(fill=tk.BOTH)
+
+        galleryFrame = tk.Frame(self.outerCV)
+        self.galleryTag = self.outerCV.create_window((0, 0), window=galleryFrame, anchor=tk.NW, width=self.outerCV.cget('width'))
+        return galleryFrame
+        # --------------------------------------------------------------------
 
     def IconLoader(self):
         # Panel size
@@ -193,16 +255,9 @@ class GUIController :
         # Load all image files
         self.tkimgs, ids = self.GetPhotoImages(iconScraper)
 
-        # Make vertical scrollbar to see all stickers -----------------------
-        outCV = tk.Canvas(self.iconsFrame, width=GUIController.__windowWidth, height=GUIController.__windowHeight)
+        gFrame = self.SetGallaryFrame()
 
-        scrollbar = tk.Scrollbar(self.iconsFrame, orient=tk.VERTICAL)
-        scrollbar.config(command=outCV.yview)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-
-        outCV.configure(yscrollcommand=scrollbar.set)
-        outCV.pack()
-        # --------------------------------------------------------------------
+        print(gFrame)
 
         bg_RGB = [0, 0, 0]
 
@@ -222,7 +277,7 @@ class GUIController :
             rgbText = '#' + ''.join(map(str, bg_RGB))
 
             # No canvas padding
-            self.cv = tk.Canvas(outCV, width=cv_width, height=cv_height, bg=rgbText, highlightthickness=0)
+            self.cv = tk.Canvas(gFrame, width=cv_width, height=cv_height, bg=rgbText, highlightthickness=0)
             # self.cv = tk.Canvas(self.root, width=cv_width, height=cv_height, bg=rgbText, highlightthickness=0, relief='ridge')
 
             # Put canvas from top-left -> left -> next-line-left
@@ -245,8 +300,6 @@ class GUIController :
             if (gridCol == GUIController.MAXIMUM_COLUMN) :
                 gridRow += 1
                 gridCol  = 0
-
-
 
     def SetTargetStickerUrl(self, url) :
             self.tgtStiUrl = url
