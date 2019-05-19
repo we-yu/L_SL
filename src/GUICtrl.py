@@ -13,10 +13,6 @@ import ClipboardController
 class GUIController :
 
 #   Class value ------------------------------------
-    TARGET_URL = 'https://store.line.me/stickershop/product/4333/'
-
-    BUTTON_COUNER = 0
-
     MAXIMUM_COLUMN = 4
     __windowWidth   = 0
     __windowHeight  = 0
@@ -125,7 +121,7 @@ class GUIController :
         self.GadgetPlacing()
 
         # Temp --------------------
-        self.SetTargetStickerUrl(GUIController.TARGET_URL)
+        # self.SetTargetStickerUrl(GUIController.TARGET_URL)
         # Temp --------------------
 
         # Initialize (If not have this, First time .delete('all') going to be error)
@@ -159,7 +155,6 @@ class GUIController :
         self.SetIconsFrame()
         self.IconLoader()
 
-        GUIController.BUTTON_COUNER += 1
         return
 
     def CopyURLtoClipboard(self, parent_id, local_id):
