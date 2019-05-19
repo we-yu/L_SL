@@ -6,7 +6,7 @@ import GUICtrl
 
 windowTitle = 'WindowTitle'
 windowWidth = '800'
-windowHeight = '600'
+windowHeight = '700'
 
 gCtrl = GUICtrl.GUIController(windowTitle, windowWidth, windowHeight)
 # ----------------------
