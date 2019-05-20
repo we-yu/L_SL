@@ -2,17 +2,18 @@
 import sys
 import tkinter as tk
 # ---
-import GUICtrl
+# import GUICtrl
+import ControlManager
 
-windowTitle = 'WindowTitle'
-windowWidth = '800'
-windowHeight = '700'
+ctrlMng = ControlManager.ControlManager()
 
-gCtrl = GUICtrl.GUIController(windowTitle, windowWidth, windowHeight)
+ctrlMng.ApplicationStart()
+
+# gCtrl = GUICtrl.GUIController(windowTitle, windowWidth, windowHeight)
 # ----------------------
 # gCtrl.IconLoader()
 # ----------------------
-gCtrl.ShowWindow()
+# gCtrl.ShowWindow()
 
 
 # class MainApplication(tk.Frame):

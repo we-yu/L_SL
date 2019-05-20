@@ -5,12 +5,14 @@ import os
 import PIL.ImageTk as pilimgtk
 import PIL.Image as pilimg
 from pprint import pprint
+import ControlManager
+
 import IconScraper
 import FileController
 import DBController
 import ClipboardController
 
-class GUIController :
+class GUIController:
 
 #   Class value ------------------------------------
     MAXIMUM_COLUMN = 4
@@ -91,14 +93,26 @@ class GUIController :
 
     # DBController instance
     @property
-    def clpbrdCtrl(self):
-        return self.__clpbrdCtrl
-    @clpbrdCtrl.setter
-    def clpbrdCtrl(self, value):
-        self.__clpbrdCtrl = value
+    def clpBrdCtrl(self):
+        return self.__clpBrdCtrl
+    @clpBrdCtrl.setter
+    def clpBrdCtrl(self, value):
+        self.__clpBrdCtrl = value
+
+    # ControlManager instance
+    @property
+    def ctrlMng(self):
+        return self.__ctrlMng
+    @ctrlMng.setter
+    def ctrlMng(self, value):
+        self.__ctrlMng = value
     #   ------------------------------------------------
 
-    def __init__(self, title, width, height) :
+    def __init__(self, title, width, height, managerInstance) :
+
+        # ControlManagerインスタンスへのリンクをセット
+        self.ctrlMng = managerInstance
+
         GUIController.__windowWidth   = width
         GUIController.__windowHeight  = height
 
@@ -129,44 +143,14 @@ class GUIController :
         # self.outerCV = tk.Canvas(self.root)
         # gf = self.SetGallaryFrame()
 
-        # DB Controller instance
-        self.dbCtrl = DBController.DBCtrl()
+        # DB Controller instanceをマネージャから取得
+        self.dbCtrl = self.ctrlMng.objects['dbCtrl']
 
-        # Clipboard controller instance
-        self.clpbrdCtrl = ClipboardController.ClipBoardCtrl()
-
-        return
-
-    def ScrapingStickerPage(self, urlbox):
-        tgtUrl = urlbox.get()
-        print(tgtUrl)
-
-        self.SetTargetStickerUrl(tgtUrl)
-        # if GUIController.BUTTON_COUNER > 0 :
-        #     # self.cv.delete('all')
-        #     self.outerCV.delete(self.galleryTag)
-        #     print('DEL1', self.outerCV)
-        #     self.outerCV.delete('all')
-        #     self.outerCV = None
-        #     print('DEL2', self.outerCV)
-        #     self.DelIconsFrame()
-        #     self.SetIconsFrame()
-        self.DelIconsFrame()
-        self.SetIconsFrame()
-        self.IconLoader()
+        # Clipboard controller instanceをマネージャから取得
+        self.clpBrdCtrl = self.ctrlMng.objects['cpBrdCtrl']
 
         return
 
-    def CopyURLtoClipboard(self, parent_id, local_id):
-        print('Kicked icon id =', parent_id, local_id)
-        print(self.groupVar.get().lower())
-
-        sticker_size = self.groupVar.get().lower()
-        selectTarget = 'url_sticker_%s' % (sticker_size)
-        query = 'SELECT %s FROM sticker_detail WHERE (parent_id=%s) AND (local_id=%s)' % (selectTarget, parent_id, local_id)
-        result = self.dbCtrl.Read(query, 'detail')
-        # result -> [('https://stickershop.line-scdn.net/...png',)]
-        self.clpbrdCtrl.CopyToClipboard(result[0][0])
 
     def GadgetPlacing(self) :
         inputFrame = tk.Frame(self.root, bd=0, relief='ridge')
@@ -196,32 +180,67 @@ class GUIController :
         radioTexts = ['L', 'M', 'S']
         radioButtons = []
 
+        # self.groupVarを軸としてL/M/Sのラジオボタンを設定。初期値はSを指定。
         for i ,rText in enumerate(radioTexts) :
             radioButtons.append(tk.Radiobutton(inputFrame, text=rText, value=rText, variable=self.groupVar))
 
+        # Label, URL-box, Get Buttonを配置。
         urlLbl.pack(side=tk.LEFT)
         # urlBox.pack(side=tk.LEFT, expand=1)
         urlBox.pack(side=tk.LEFT)
 
         urlBtn.pack(side=tk.LEFT)
 
+        # RadioButtonはForで設置
         for rBtn in radioButtons :
             rBtn.pack(side=tk.LEFT)
 
-        # Tmp
+        # Tmp URLの初期値を設定
         urlBox.insert(tk.END, 'https://store.line.me/stickershop/product/1252985/')
 
         self.SetIconsFrame()
 
         return
 
+    # Getボタンを押した時に起動。対象のページからアイコンをロードし、既存のフレームを削除し、新たに敷き直す。
+    def ScrapingStickerPage(self, urlbox):
+        tgtUrl = urlbox.get()
+        print(tgtUrl)
+
+        self.SetTargetStickerUrl(tgtUrl)
+        # if GUIController.BUTTON_COUNER > 0 :
+        #     # self.cv.delete('all')
+        #     self.outerCV.delete(self.galleryTag)
+        #     print('DEL1', self.outerCV)
+        #     self.outerCV.delete('all')
+        #     self.outerCV = None
+        #     print('DEL2', self.outerCV)
+        #     self.DelIconsFrame()
+        #     self.SetIconsFrame()
+        self.DelIconsFrame()
+        self.SetIconsFrame()
+        self.IconLoader()
+        return
+
+    def CopyURLtoClipboard(self, parent_id, local_id):
+        print('Kicked icon id =', parent_id, local_id)
+        print(self.groupVar.get().lower())
+
+        sticker_size = self.groupVar.get().lower()
+        selectTarget = 'url_sticker_%s' % (sticker_size)
+        query = 'SELECT %s FROM sticker_detail WHERE (parent_id=%s) AND (local_id=%s)' % (selectTarget, parent_id, local_id)
+        result = self.dbCtrl.Read(query, 'detail')
+        # result -> [('https://stickershop.line-scdn.net/...png',)]
+        self.clpBrdCtrl.CopyToClipboard(result[0][0])
+
+    # アイコン敷き詰め用フレームをセット
     def SetIconsFrame(self):
         self.iconsFrame = tk.Frame(self.root, bd=0, relief='ridge')
         self.iconsFrame.pack()
+
+    # アイコン敷き詰め用フレームを削除
     def DelIconsFrame(self):
         self.iconsFrame.pack_forget()
-
-
 
     def SetGallaryFrame(self):
         # Make vertical scrollbar to see all stickers -----------------------
@@ -248,11 +267,12 @@ class GUIController :
         iconScraper = IconScraper.IconScraper(self.tgtStiUrl)
 
         # Load all image files
-        self.tkimgs, ids = self.GetPhotoImages(iconScraper)
+        # self.tkimgs, ids = self.GetPhotoImages(iconScraper)
+        self.tkimgs, self.parentId, ids = self.ctrlMng.GetPhotoImages(self.tgtStiUrl)
+
+        # print(self.tkimgs, self.parentId, ids)
 
         gFrame = self.SetGallaryFrame()
-
-        print(gFrame)
 
         bg_RGB = [0, 0, 0]
 
@@ -360,9 +380,6 @@ class GUIController :
 
         else :
             print(dirName, 'is already downloaded.')
-
-
-
 
         return photoImgs, ids
 
