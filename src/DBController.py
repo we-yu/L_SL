@@ -1,8 +1,6 @@
 # coding: UTF-8
 
-from pprint import pprint
 import sqlite3
-import os.path # ファイル操作
 
 class DBCtrl :
 

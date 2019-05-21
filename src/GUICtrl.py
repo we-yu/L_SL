@@ -2,15 +2,8 @@
 # View
 import tkinter as tk
 import os
-import PIL.ImageTk as pilimgtk
-import PIL.Image as pilimg
-from pprint import pprint
-import ControlManager
 
-import IconScraper
-import FileController
-import DBController
-import ClipboardController
+from pprint import pprint
 
 class GUIController:
 
@@ -83,22 +76,6 @@ class GUIController:
     def outerCV(self, value):
         self.__outerCV = value
 
-    # DBController instance
-    @property
-    def dbCtrl(self):
-        return self.__dbCtrl
-    @dbCtrl.setter
-    def dbCtrl(self, value):
-        self.__dbCtrl = value
-
-    # DBController instance
-    @property
-    def clpBrdCtrl(self):
-        return self.__clpBrdCtrl
-    @clpBrdCtrl.setter
-    def clpBrdCtrl(self, value):
-        self.__clpBrdCtrl = value
-
     # ControlManager instance
     @property
     def ctrlMng(self):
@@ -143,12 +120,6 @@ class GUIController:
         # self.outerCV = tk.Canvas(self.root)
         # gf = self.SetGallaryFrame()
 
-        # DB Controller instanceをマネージャから取得
-        self.dbCtrl = self.ctrlMng.objects['dbCtrl']
-
-        # Clipboard controller instanceをマネージャから取得
-        self.clpBrdCtrl = self.ctrlMng.objects['cpBrdCtrl']
-
         return
 
 
@@ -166,7 +137,7 @@ class GUIController:
         # placeholder setting
         # urlBox.insert(0, 'https://store.line.me/stickershop/product/446/')
         # Button Event : <ButtonRelease-1> = Release light button.
-        urlBtn.bind("<Button-1>", lambda event, a=urlBox:self.ScrapingStickerPage(a))
+        urlBtn.bind("<Button-1>", lambda event, a=urlBox:self.ReloadIconsFrame(a))
         # urlBtn.bind("<ButtonRelease-1>", self.DummyFunc)
 
         # Radio button group control
@@ -203,7 +174,7 @@ class GUIController:
         return
 
     # Getボタンを押した時に起動。対象のページからアイコンをロードし、既存のフレームを削除し、新たに敷き直す。
-    def ScrapingStickerPage(self, urlbox):
+    def ReloadIconsFrame(self, urlbox):
         tgtUrl = urlbox.get()
         print(tgtUrl)
 
@@ -222,17 +193,6 @@ class GUIController:
         self.IconLoader()
         return
 
-    def CopyURLtoClipboard(self, parent_id, local_id):
-        print('Kicked icon id =', parent_id, local_id)
-        print(self.groupVar.get().lower())
-
-        sticker_size = self.groupVar.get().lower()
-        selectTarget = 'url_sticker_%s' % (sticker_size)
-        query = 'SELECT %s FROM sticker_detail WHERE (parent_id=%s) AND (local_id=%s)' % (selectTarget, parent_id, local_id)
-        result = self.dbCtrl.Read(query, 'detail')
-        # result -> [('https://stickershop.line-scdn.net/...png',)]
-        self.clpBrdCtrl.CopyToClipboard(result[0][0])
-
     # アイコン敷き詰め用フレームをセット
     def SetIconsFrame(self):
         self.iconsFrame = tk.Frame(self.root, bd=0, relief='ridge')
@@ -242,6 +202,7 @@ class GUIController:
     def DelIconsFrame(self):
         self.iconsFrame.pack_forget()
 
+    # IconsFrameの上にOuterCVキャンバスセット。スクロールバーはこれにアタッチ。さらにその上にGalleryFrameを生成。
     def SetGallaryFrame(self):
         # Make vertical scrollbar to see all stickers -----------------------
         self.outerCV = tk.Canvas(self.iconsFrame, width=GUIController.__windowWidth, height=GUIController.__windowHeight)
@@ -249,14 +210,13 @@ class GUIController:
         scrollbar = tk.Scrollbar(self.iconsFrame, orient=tk.VERTICAL)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         scrollbar.config(command=self.outerCV.yview)
-
         self.outerCV.config(scrollregion=(0, 0, 2000, 2000), yscrollcommand=scrollbar.set)
         self.outerCV.pack(fill=tk.BOTH)
 
         galleryFrame = tk.Frame(self.outerCV)
         self.galleryTag = self.outerCV.create_window((0, 0), window=galleryFrame, anchor=tk.NW, width=self.outerCV.cget('width'))
-        return galleryFrame
         # --------------------------------------------------------------------
+        return galleryFrame
 
     def IconLoader(self):
         # Panel size
@@ -264,17 +224,17 @@ class GUIController:
         cv_height   = 200
 
         # Scaper instantiate
-        iconScraper = IconScraper.IconScraper(self.tgtStiUrl)
+        # iconScraper = IconScraper.IconScraper(self.tgtStiUrl)
 
         # Load all image files
-        # self.tkimgs, ids = self.GetPhotoImages(iconScraper)
         self.tkimgs, self.parentId, ids = self.ctrlMng.GetPhotoImages(self.tgtStiUrl)
 
         # print(self.tkimgs, self.parentId, ids)
 
         gFrame = self.SetGallaryFrame()
 
-        bg_RGB = [0, 0, 0]
+        bg_RGB = ['00', '80', '00']
+        rgbText = '#' + ''.join(map(str, bg_RGB))
 
         gridRow = 0
         gridCol = 0
@@ -285,11 +245,6 @@ class GUIController:
             # 5 6 □ □
             # □ □ □ □
             # □ □ □ □
-
-            bg_RGB[0] = '00'
-            bg_RGB[1] = '88'
-            bg_RGB[2] = '00'
-            rgbText = '#' + ''.join(map(str, bg_RGB))
 
             # No canvas padding
             self.cv = tk.Canvas(gFrame, width=cv_width, height=cv_height, bg=rgbText, highlightthickness=0)
@@ -308,7 +263,7 @@ class GUIController:
 
             # http://memopy.hatenadiary.jp/entry/2017/06/13/214928
             # Define event, When clicked Canvas.
-            self.cv.bind("<Button-1>", lambda event, a=self.parentId, b=iconId:self.CopyURLtoClipboard(a, b))
+            self.cv.bind("<Button-1>", lambda event, a=self.parentId, b=iconId, c=self.groupVar:self.ctrlMng.CopyURLtoClipboard(a, b, c))
 
             gridCol += 1
 
@@ -318,79 +273,6 @@ class GUIController:
 
     def SetTargetStickerUrl(self, url) :
             self.tgtStiUrl = url
-
-    def GetPhotoImages(self, scraper) :
-
-        # Get all targets of Download icons URL
-        iconInfos = scraper.GetAllIconURL()
-        # pprint(iconInfos)
-
-        # Get Top title of Sticker.
-        title = scraper.GetStickerTitle()
-        # Convert some characters, And connect with ID. Same time, Get ID. (URL ID)
-        self.parentId, dirName = self.GetDirName(title, self.tgtStiUrl)
-        urlId = self.parentId
-
-        fCtrl = FileController.FileCtrl()
-        relativePath = fCtrl.CheckCreateDirectory(dirName) + '/'
-
-        # python photo image list
-        photoImgs = []
-        # id numbers
-        ids = []
-
-        for icon in iconInfos :
-            fullpath = relativePath + icon['id'] + '.png'
-            # print(icon['id'], icon['url'], fullpath)
-            gotFile = fCtrl.SaveFile(icon['backGroundUrl'], fullpath)
-
-            # PNG convert to jpeg [Warning]
-            openImg = pilimg.open(gotFile).convert('RGB')
-            photoImgs.append(pilimgtk.PhotoImage(openImg))
-
-            # Save id numbers by getting order
-            ids.append(icon['id'])
-
-        # DB process ------------------------------------------------
-
-        # Check list table. Already registered this sticker data or not.
-        query = 'SELECT count(*) FROM sticker_list WHERE id=%s' % (urlId)
-        result = self.dbCtrl.Read(query, 'count')
-
-        # If not registered.
-        if result <= 0 :
-            # Insert 1 record to list table. URL-ID, URL, Directory name, Stored directory
-            query = 'INSERT INTO sticker_list VALUES(%s, \'%s\', \'%s\', \'%s\')' % (urlId, scraper.tgtUrl, dirName, relativePath)
-            self.dbCtrl.Create(query)
-
-            # After registerd into list, Make data of detail.
-            query = 'SELECT count(*) FROM sticker_detail WHERE parent_id=%s' % (urlId)
-            result = self.dbCtrl.Read(query, 'count')
-
-            if result <= 0:
-                # Several records to register.
-                query = 'INSERT INTO sticker_detail VALUES (?, ?, ?, ?, ?)'
-                values = []
-                for icon in iconInfos:
-                    # Make data as tuple. (Executemany accepts only [(), (), ()] tuple in list.)
-                    value = (urlId, icon['id'], icon['staticUrl'], icon['fbStaticUrl'], icon['backGroundUrl'])
-                    values.append(value)
-
-                result = self.dbCtrl.Create(query, values, 'many')
-
-        else :
-            print(dirName, 'is already downloaded.')
-
-        return photoImgs, ids
-
-    def GetDirName(self, title, url):
-
-        urlId = url.split('/')[5]
-        dirName = title.replace(' ', '_')
-        dirName = dirName.replace('/', '／')
-        dirName = urlId + '_' + dirName
-
-        return urlId, dirName
 
     def ShowWindow(self):
         self.root.mainloop()

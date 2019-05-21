@@ -8,10 +8,8 @@ class FileCtrl :
 
     ICONS_DIRECTORY = '../img/icons/'
 
-    instCheck = ''
-    def __init__(self, msg=None) :
+    def __init__(self) :
         print('Call ' + self.__class__.__name__ + ' Constructor')
-        FileCtrl.instCheck = msg
 
     def CheckCreateDirectory(self, dirName):
         relativePath = FileCtrl.ICONS_DIRECTORY + dirName
@@ -30,8 +28,5 @@ class FileCtrl :
             print(stat[0])
 
         return fileName
-
-    def TestFunction(self):
-        print('TestFunc F-ctrl', FileCtrl.instCheck)
 
 

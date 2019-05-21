@@ -1,19 +1,18 @@
 # coding: UTF-8
 import PIL.ImageTk as pilimgtk
 import PIL.Image as pilimg
-from pprint import pprint
 import GUICtrl
 import IconScraper
 import FileController
 import DBController
 import ClipboardController
 
+from pprint import pprint
+
 class ControlManager:
     title = 'LineStickerLider'
     width = '800'
     height = '700'
-
-    sampleText = 'aBcDeSample'
 
     @property
     def windowTitle(self):
@@ -88,17 +87,18 @@ class ControlManager:
         # print(hex(id(self.instances['fileCtrl'])))
         # print(self.instances.items())
 
-    def SetSampleText(self, text):
-        self.sampleText = text
-    def GetSampleText(self):
-        return self.sampleText
-
     def ApplicationStart(self):
-        self.objects['ctrlMng'].SetSampleText('ZZZyyyXXX')
-        msg = self.objects['ctrlMng'].GetSampleText()
-        print('text = ', msg, ' = text')
         self.objects['guiCtrl'].ShowWindow()
         return
+
+    def CopyURLtoClipboard(self, parent_id, local_id, grp):
+        print('on Manager', parent_id, local_id, grp.get().lower())
+        sticker_size = grp.get().lower()
+        selectTarget = 'url_sticker_%s' % (sticker_size)
+        query = 'SELECT %s FROM sticker_detail WHERE (parent_id=%s) AND (local_id=%s)' % (selectTarget, parent_id, local_id)
+        result = self.objects['dbCtrl'].Read(query, 'detail')
+        # result -> [('https://stickershop.line-scdn.net/...png',)]
+        self.objects['cpBrdCtrl'].CopyToClipboard(result[0][0])
 
     # Get photo images from target URL
     def GetPhotoImages(self, tgtStiUrl) :
@@ -113,8 +113,8 @@ class ControlManager:
         # Get Top title of Sticker.
         title = scraper.GetStickerTitle()
         # Convert some characters, And connect with ID. Same time, Get ID. (URL ID)
-        parentId, dirName = self.GetDirName(title, tgtStiUrl)
-        urlId = parentId
+        urlId   = self.GetUrlID(tgtStiUrl)
+        dirName = self.GetDirName(title, urlId)
 
         fCtrl = FileController.FileCtrl()
         relativePath = fCtrl.CheckCreateDirectory(dirName) + '/'
@@ -164,17 +164,18 @@ class ControlManager:
                     values.append(value)
 
                 result = self.objects['dbCtrl'].Create(query, values, 'many')
-
         else :
             print(dirName, 'is already downloaded.')
 
-        return photoImgs, parentId, ids
+        return photoImgs, urlId, ids
 
-    def GetDirName(self, title, url):
-
+    def GetUrlID(self, url):
         urlId = url.split('/')[5]
+        return urlId
+
+    def GetDirName(self, title, urlId):
+        # urlId = url.split('/')[5]
         dirName = title.replace(' ', '_')
         dirName = dirName.replace('/', '／')
         dirName = urlId + '_' + dirName
-
-        return urlId, dirName
+        return dirName

@@ -2,8 +2,6 @@
 
 import requests
 from bs4 import BeautifulSoup
-from pprint import pprint
-import sys
 import re
 import json
 
@@ -55,7 +53,7 @@ class IconScraper :
         # HTMLパーサー解析済みデータ
         self.soup = BeautifulSoup(sticker_req.content, 'html.parser')
         # StickerID
-        self.topId = self.GetStickerTopID()
+        # self.topId = self.GetStickerTopID()
 
     def GetAllIconURL(self):
         # print('Call ' + sys._getframe().f_code.co_name)
