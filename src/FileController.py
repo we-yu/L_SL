@@ -25,7 +25,8 @@ class FileCtrl :
 
         if not os.path.exists(fileName):
             stat = urlreq.urlretrieve(targetUrl, fileName)
-            print(stat[0])
+            # print(stat[0])
 
         return fileName
+
 
