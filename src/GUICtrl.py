@@ -96,7 +96,7 @@ class GUIController:
         print("Constructor Kicked")
         self.root = tk.Tk()
         # Window Width were fixed.
-        # self.root.resizable(width=False, height=False)
+        self.root.resizable(width=False, height=False)
 
         self.root.title(title)
         geometryText = str(GUIController.__windowWidth) + 'x' + str(GUIController.__windowHeight)
@@ -115,38 +115,21 @@ class GUIController:
         # self.SetTargetStickerUrl(GUIController.TARGET_URL)
         # Temp --------------------
 
-        # Initialize (If not have this, First time .delete('all') going to be error)
-        # self.cv = tk.Canvas(self.root)
-        # self.outerCV = tk.Canvas(self.root)
-        # gf = self.SetGallaryFrame()
-
         return
-
 
     def GadgetPlacing(self) :
         inputFrame = tk.Frame(self.root, bd=0, relief='ridge')
         inputFrame.pack(fill=tk.X)
-        # inputFrame.grid(fill='x', row=0, column=0)
-        # button1 = tk.Button(inputFrame, text="入力")
-        # button1.pack(side="left")
 
         urlLbl = tk.Label(inputFrame, text='URL')
         urlBox = tk.Entry(inputFrame, width=60)
         urlBtn = tk.Button(inputFrame, text='Get')
 
-        # placeholder setting
-        # urlBox.insert(0, 'https://store.line.me/stickershop/product/446/')
-        # Button Event : <ButtonRelease-1> = Release light button.
-        urlBtn.bind("<Button-1>", lambda event, a=urlBox:self.ReloadIconsFrame(a))
-        # urlBtn.bind("<ButtonRelease-1>", self.DummyFunc)
+        # Event binding for button
+        urlBtn.bind("<ButtonRelease-1>", lambda event, a=urlBox:self.ReloadIconsFrame(a))
 
-        # Radio button group control
-        # Radio group value should be class value.
-        # self.groupVar = tk.IntVar()
-        # self.groupVar.set(2)
         self.groupVar = tk.StringVar()
         self.groupVar.set('S')
-        # groupVar = tk.StringVar(value='sizeL')
 
         radioTexts = ['L', 'M', 'S']
         radioButtons = []
@@ -176,18 +159,9 @@ class GUIController:
     # Getボタンを押した時に起動。対象のページからアイコンをロードし、既存のフレームを削除し、新たに敷き直す。
     def ReloadIconsFrame(self, urlbox):
         tgtUrl = urlbox.get()
-        print(tgtUrl)
+        # print(tgtUrl)
 
         self.SetTargetStickerUrl(tgtUrl)
-        # if GUIController.BUTTON_COUNER > 0 :
-        #     # self.cv.delete('all')
-        #     self.outerCV.delete(self.galleryTag)
-        #     print('DEL1', self.outerCV)
-        #     self.outerCV.delete('all')
-        #     self.outerCV = None
-        #     print('DEL2', self.outerCV)
-        #     self.DelIconsFrame()
-        #     self.SetIconsFrame()
         self.DelIconsFrame()
         self.SetIconsFrame()
         self.IconLoader()
@@ -223,13 +197,8 @@ class GUIController:
         cv_width    = 200
         cv_height   = 200
 
-        # Scaper instantiate
-        # iconScraper = IconScraper.IconScraper(self.tgtStiUrl)
-
         # Load all image files
         self.tkimgs, self.parentId, ids = self.ctrlMng.GetPhotoImages(self.tgtStiUrl)
-
-        # print(self.tkimgs, self.parentId, ids)
 
         gFrame = self.SetGallaryFrame()
 
@@ -248,17 +217,15 @@ class GUIController:
 
             # No canvas padding
             self.cv = tk.Canvas(gFrame, width=cv_width, height=cv_height, bg=rgbText, highlightthickness=0)
-            # self.cv = tk.Canvas(self.root, width=cv_width, height=cv_height, bg=rgbText, highlightthickness=0, relief='ridge')
 
             # Put canvas from top-left -> left -> next-line-left
             # Put as table, Use grid func
             self.cv.grid(row=gridRow, column=gridCol)
-            # self.cv.pack(anchor=tk.NW, side=tk.LEFT)
 
             # 画像はCanvasの真ん中に配置
             self.cv.create_image((cv_width / 2), (cv_height / 2), image=tkimg)
 
-            # gridTxt = 'Grid = [%s, %s]' % (gridRow, gridCol)
+            # Get icon's unique ID, Target icon is on this time.
             iconId = str(ids[i])
 
             # http://memopy.hatenadiary.jp/entry/2017/06/13/214928

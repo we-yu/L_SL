@@ -23,36 +23,19 @@ class DBCtrl :
         self.__cursor = value
 
     def __init__(self) :
-        print('Call ' + self.__class__.__name__ + ' Constructor')
+        # print('Call ' + self.__class__.__name__ + ' Constructor')
+        # Get DB file
         self.con = self.CheckCreateDB()
-
-        # self.cursor = connector.cursor()
-        # self.cursor.execute(query)
-        # res = self.cursor.fetchall()
-        # print('res = ', res)
-
+        # Generate cursor object
         self.cursor = self.con.cursor()
 
-        # -----------------------------------------------------
-        # query = 'SELECT * FROM sticker_list ORDER BY id'
-        # self.cursor.execute(query)
-        # fAll = self.cursor.fetchall()
-        # pprint(fAll)
-        # print('---')
-        # query = 'SELECT * FROM sticker_detail ORDER BY local_id'
-        # self.cursor.execute(query)
-        # fAll = self.cursor.fetchall()
-        # pprint(fAll)
-        # print('---')
-        # -----------------------------------------------------
-
+    # Get Target DB file. If not exit, Create & Get.
     def CheckCreateDB(self) :
         relativePath = DBCtrl.DB_LOCATION
         con = sqlite3.connect(relativePath, isolation_level=None)
         return con
 
     def Create(self, query, data=None, type=None) :
-
         if type == 'many' :
             dbResult = self.cursor.executemany(query, data)
         else :
@@ -82,7 +65,3 @@ class DBCtrl :
             print('Query is [', q, ']')
         except sqlite3.Error as e:
             print('sqlite3.Error occurred : ', e.args[0])
-
-        
-        
-
